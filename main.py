@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from ramp_assistant.graph import build_ramp_graph, build_evaluation_graph
 
-load_dotenv(dotenv_path="/Users/dandan/projects/langchain-ramp-assistant/.env")
+load_dotenv(dotenv_path="/Users/dandan/projects/ace-lc-interview/.env")
 
 print("KEY:", os.getenv("ANTHROPIC_API_KEY"))
 
