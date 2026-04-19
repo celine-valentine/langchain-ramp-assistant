@@ -8,3 +8,11 @@ class RampState(TypedDict):
     scenarios: list[dict]
     user_response: str
     evaluation: dict
+
+
+class DrillState(TypedDict):
+    product_name: str
+    difficulty: str
+    drill: dict
+    code_submission: str
+    code_review: dict

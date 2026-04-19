@@ -37,9 +37,32 @@ Key features:
 - Playground: Test prompts and chains interactively
 """
 
-st.set_page_config(page_title="Ramp Assistant", layout="wide")
-st.title("Ramp Assistant — DE Interview Prep")
+st.set_page_config(page_title="Ace DE Interview", layout="wide")
+st.title("Ace DE Interview — Your Personal Prep Tutor")
 st.caption("Built with LangChain + LangGraph + Claude · Traces in LangSmith")
+
+st.markdown("""
+<style>
+[data-testid="stSidebar"] {
+    min-width: 380px;
+    max-width: 380px;
+}
+[data-testid="stSidebar"] * {
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+}
+[data-testid="stSidebar"] input {
+    font-size: 13px;
+}
+[data-testid="stToolbar"],
+header[data-testid="stHeader"],
+#MainMenu {
+    display: none !important;
+    visibility: hidden !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ── Session state ──────────────────────────────────────────────────
 if "result" not in st.session_state:
@@ -278,3 +301,38 @@ with tab2:
         if r.get("model_solution"):
             with st.expander("Model solution — only open after you've tried"):
                 st.code(r["model_solution"], language="python")
+
+with st.sidebar:
+    st.subheader("Doc Chat")
+    st.caption("Ask anything about LangChain, LangGraph, or LangSmith.")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    for msg in st.session_state.chat_history:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    if "input_counter" not in st.session_state:
+        st.session_state.input_counter = 0
+
+    question_input = st.text_input("Ask a question...", key=f"doc_chat_{st.session_state.input_counter}")
+    send = st.button("Send", key="doc_chat_send")
+    question = question_input if send and question_input.strip() else None
+
+    if question:
+        st.session_state.chat_history.append({"role": "user", "content": question})
+
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                from ramp_assistant.drills import chat_with_docs
+                answer = chat_with_docs(
+                    question=question,
+                    chat_history=st.session_state.chat_history[:-1],
+                    docs=LANGCHAIN_DOCS,
+                )
+            st.markdown(answer)
+
+        st.session_state.chat_history.append({"role": "assistant", "content": answer})
+        st.session_state.input_counter += 1
+        st.rerun()
