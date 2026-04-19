@@ -15,3 +15,12 @@ def build_ramp_graph():
     graph.add_edge("generate_scenarios", END)
 
     return graph.compile()
+
+def build_evaluation_graph():
+    graph = StateGraph(RampState)
+
+    graph.add_node("evaluate_response", evaluate_response)
+    graph.set_entry_point("evaluate_response")
+    graph.add_edge("evaluate_response", END)
+
+    return graph.compile()

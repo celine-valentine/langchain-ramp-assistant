@@ -1,4 +1,5 @@
 import json
+import os
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -6,11 +7,15 @@ from langchain_core.output_parsers import JsonOutputParser
 
 from .state import RampState
 
-llm = ChatAnthropic(model="claude-sonnet-4-5", temperature=0.3)
 parser = JsonOutputParser()
 
 
+def get_llm():
+    return ChatAnthropic(model="claude-sonnet-4-5", temperature=0.3)
+
+
 def extract_concepts(state: RampState) -> dict:
+    llm = get_llm()
     messages = [
         SystemMessage(content="""You are a technical curriculum designer preparing a new Deployed Engineer.
 Given product documentation, extract the key concepts they need to master.
@@ -44,6 +49,7 @@ Return ONLY valid JSON."""),
     return {"key_concepts": concepts}
 
 def generate_scenarios(state: RampState) -> dict:
+    llm = get_llm()
     concepts_text = json.dumps(state["key_concepts"], indent=2)
 
     messages = [
@@ -90,3 +96,58 @@ Return ONLY valid JSON."""),
     response = llm.invoke(messages)
     scenarios = parser.parse(response.content)
     return {"scenarios": scenarios}
+
+def evaluate_response(state: RampState) -> dict:
+    llm = get_llm()
+    scenario = state["scenarios"][0] if state["scenarios"] else {}
+    concepts_text = json.dumps(state["key_concepts"], indent=2)
+
+    messages = [
+        SystemMessage(content="""You are a principal Deployed Engineer coaching a new DE on their customer communication.
+
+Evaluate their response across four dimensions:
+
+1. TECHNICAL ACCURACY — Did they get the architecture, API, or behavior right?
+   Flag any errors or gaps that would mislead a customer's engineering team.
+
+2. VALUE ARTICULATION — Did they explain not just what the feature does but why the customer needs it?
+   A DE who only explains mechanics misses half the job. Did they connect the technical
+   answer to the customer's business problem or the market trend driving it?
+
+3. PROBLEM-SOLVING APPROACH — For debugging scenarios: did they give a structured diagnostic
+   path, not just a guess? For use case scenarios: did they ask clarifying questions or
+   make reasonable assumptions explicit?
+
+4. CUSTOMER CLARITY — Could a senior engineer on the customer's team act on this response?
+   Is it specific enough to be useful, or generic enough to be useless?
+
+Return JSON:
+{
+  "score": 1-10,
+  "technical_accuracy": "what they got right and what was wrong or missing",
+  "value_articulation": "did they explain why not just what? what business context did they miss?",
+  "problem_solving": "was their approach structured? what would a principal DE do differently?",
+  "customer_clarity": "could the customer's team act on this? what was vague?",
+  "strengths": ["specific things they did well"],
+  "gaps": ["specific things they missed"],
+  "coaching_tip": "the one thing to focus on next",
+  "model_response": "how a principal DE would answer this (3-4 sentences, specific and concrete)"
+}
+
+Be direct. Generic feedback is useless.
+Return ONLY valid JSON."""),
+        HumanMessage(content=f"""Product: {state['product_name']}
+
+Concepts:
+{concepts_text}
+
+Scenario:
+{json.dumps(scenario, indent=2)}
+
+Their response:
+{state['user_response']}"""),
+    ]
+
+    response = llm.invoke(messages)
+    evaluation = parser.parse(response.content)
+    return {"evaluation": evaluation}
