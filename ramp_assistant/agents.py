@@ -76,6 +76,19 @@ A customer or exec pushes back on the approach, the tool choice, or the business
 The DE must articulate value — not just how it works, but why they need it and why now.
 Examples: "why LangChain instead of calling the API directly?",
 "our CTO says we should build this ourselves", "what's the ROI of adding LangGraph here?"
+                      
+TYPE 4 — ARCHITECTURE REVIEW
+A customer shares their current LangChain/LangGraph implementation and asks for a review.
+The DE must assess it, identify issues or inefficiencies, and suggest improvements clearly.
+Examples: "we built our RAG pipeline this way, does this look right?",
+"our agent graph has 8 nodes, is that too complex?", "we're storing state in Redis, is that the right approach?"
+
+TYPE 5 — COMPETITIVE
+A customer is deciding between LangChain and an alternative approach.
+The DE must differentiate honestly — no overselling, no dismissing the alternative.
+Examples: "why not just call the Anthropic API directly?",
+"we looked at LlamaIndex, why should we pick LangChain?",
+"our engineers want to build the orchestration layer themselves"
 
 Return JSON array:
 [
@@ -90,7 +103,7 @@ Return JSON array:
   }
 ]
 
-Generate 4-5 scenarios, at least one of each type.
+Generate 6-8 scenarios, at least one of each type.
 Make them feel like real customer conversations — specific, grounded, no textbook phrasing.
 Return ONLY valid JSON."""),
         HumanMessage(content=f"Product: {state['product_name']}\n\nConcepts:\n{concepts_text}"),
