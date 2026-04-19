@@ -11,6 +11,9 @@ parser = JsonOutputParser()
 
 
 def get_llm():
+    return ChatAnthropic(model="claude-haiku-4-5-20251001", temperature=0.3)
+
+def get_eval_llm():
     return ChatAnthropic(model="claude-sonnet-4-5", temperature=0.3)
 
 
@@ -98,7 +101,7 @@ Return ONLY valid JSON."""),
     return {"scenarios": scenarios}
 
 def evaluate_response(state: RampState) -> dict:
-    llm = get_llm()
+    llm = get_eval_llm()
     scenario = state["scenarios"][0] if state["scenarios"] else {}
     concepts_text = json.dumps(state["key_concepts"], indent=2)
 
